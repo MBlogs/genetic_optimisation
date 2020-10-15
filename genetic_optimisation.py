@@ -1,5 +1,5 @@
 import random
-
+import matplotlib.pyplot as plt # Optional
 
 def select(population, tournament_size):
   # Choose an individual in population through winner of a tournament
@@ -47,6 +47,8 @@ def optimise(iterations, genes, genome_length, fitness_func
   population = [random.choices(genes, k=genome_length) for _ in range(population_size)]
   population, fitnesses = population_fitnesses(population, fitness_func)
 
+  best_fitnesses = []
+
   # Iterate through generations of populations
   for generation in range(iterations):
     new_population = [p.copy() for p in population]
@@ -58,29 +60,37 @@ def optimise(iterations, genes, genome_length, fitness_func
     # Compute fitnesses and sort population by them
     population, fitnesses = population_fitnesses(new_population, fitness_func)
     print(f"Gen: {generation+1}, Best: {population[0]} with Fitness: {fitnesses[0]}")
+    best_fitnesses.append(fitnesses[0])
 
     # Check if we've passed the max fitness stopping condition
     if max_fitness is not None and fitnesses[0] >= max_fitness:
       break
 
-  return population[0], fitnesses[0]
+  return population[0], fitnesses[0], best_fitnesses
 
 
 if __name__ == "__main__":
-  iterations = 20
+  # Example of using function to solve a password
+  iterations = 1000
   population_size = 200
   elites_size = 5
   tournament_size = 10
   mutation_rate = 0.1
 
-  genes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
-  genome_length = 10
-  fitness_func = lambda x: sum(x)
+  genes = "abcdefghijklmnopqrstuvwxyz123456789"
+  genome_length = len("password123")
+  fitness_func = lambda x: sum([-abs(ord("password123"[i]) - ord(''.join(x)[i])) for i in range(len(x))])
 
-  best, best_fitness = optimise(iterations, genes, genome_length, fitness_func
-                                , population_size, elites_size, tournament_size, mutation_rate)
+  best, best_fitness, best_fitnesses = optimise(iterations, genes, genome_length, fitness_func
+                                , population_size, elites_size, tournament_size, mutation_rate, 0)
   print(f"Best: {best} with Fitness: {best_fitness}")
 
-#genes = "abcdefghijklmnopqrstuvwxyz123456789"
-#genome_length = 24
-#fitness_func = lambda x: sum([-abs(ord("pleasedontcrackmepass123"[i]) - ord(''.join(x)[i])) for i in range(len(x))])
+  # Optional: Graph of fitness improvement over time
+  fig,ax = plt.subplots()
+  ax.plot(best_fitnesses)
+  ax.set_ylabel('Fitness')
+  ax.set_xlabel('Generation')
+  ax.set_xlim(0, len(best_fitnesses))
+  ax.set_ylim(best_fitnesses[0], 0)
+  plt.show()
+
